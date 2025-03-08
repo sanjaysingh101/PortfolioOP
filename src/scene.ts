@@ -264,7 +264,8 @@ function init() {
       gui.reset()
     }
     gui.add({ resetGui }, 'resetGui').name('RESET')
-
+    addEventListener("wheel", (event) => {});
+    onwheel = (event) => {console.log(event)};
     gui.close()
   }
 }
