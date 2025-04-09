@@ -4,17 +4,24 @@ import {
   AxesHelper,
   BoxGeometry,
   Clock,
+  Color,
+  ExtrudeGeometry,
   GridHelper,
   LoadingManager,
   Mesh,
   MeshLambertMaterial,
+  MeshNormalMaterial,
   MeshStandardMaterial,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
   PointLight,
   PointLightHelper,
+  Raycaster,
   Scene,
+  Shape,
+  Vector2,
+  Vector3,
   WebGLRenderer,
 } from 'three'
 import { DragControls } from 'three/examples/jsm/controls/DragControls'
@@ -23,6 +30,10 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import * as animations from './helpers/animations'
 import { toggleFullScreen } from './helpers/fullscreen'
 import { resizeRendererToDisplaySize } from './helpers/responsiveness'
+import { TTFLoader } from 'three/examples/jsm/loaders/TTFLoader';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+
 import './style.css'
 
 const CANVAS_ID = 'scene'
@@ -44,7 +55,7 @@ let stats: Stats
 let gui: GUI
 
 const animation = { enabled: true, play: true }
-
+let cuboid: Mesh, raycaster: Raycaster, mouse: Vector2;
 init()
 animate()
 
@@ -57,8 +68,11 @@ function init() {
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = PCFSoftShadowMap
     scene = new Scene()
+    scene.background = new Color('#fdb979');
+
   }
 
+  //
   // ===== 👨🏻‍💼 LOADING MANAGER =====
   {
     loadingManager = new LoadingManager()
@@ -80,19 +94,45 @@ function init() {
 
   // ===== 💡 LIGHTS =====
   {
-    ambientLight = new AmbientLight('white', 0.4)
+    ambientLight = new AmbientLight('white', 3.5)
     pointLight = new PointLight('white', 20, 100)
     pointLight.position.set(-2, 2, 2)
-    pointLight.castShadow = true
+    pointLight.castShadow = false
     pointLight.shadow.radius = 4
     pointLight.shadow.camera.near = 0.5
     pointLight.shadow.camera.far = 4000
     pointLight.shadow.mapSize.width = 2048
     pointLight.shadow.mapSize.height = 2048
     scene.add(ambientLight)
-    scene.add(pointLight)
+    //scene.add(pointLight)
+  }
+  // === Loading custom fonts
+  {
+    const fontLoader = new FontLoader();
+    const ttfLoader = new TTFLoader();
+    ttfLoader.load('fonts/poppins.medium.ttf', (json) => {
+      // First parse the font.
+      const jetBrainsFont = fontLoader.parse(json);
+      // Use parsed font as normal.
+      const textGeometry = new TextGeometry('Portfolio OP', {
+        size: 0.11,
+        font: jetBrainsFont,
+      });
+      const textMaterial = createStandardMaterial("#c78c55")
+      const textMesh = new Mesh(textGeometry, textMaterial);
+      textMesh.castShadow = true
+      textMesh.position.x = -0.85;
+      textMesh.position.y = 1;
+      textMesh.scale.z = 0.0009
+      ;
+      scene.add(textMesh);
+    });
+
+
   }
 
+
+  //
   // ===== 📦 OBJECTS =====
   {
     const sideLength = 1
@@ -119,13 +159,25 @@ function init() {
     plane.rotateX(Math.PI / 2)
     plane.receiveShadow = true
 
-    scene.add(cube)
-    scene.add(plane)
+    //scene.add(cube)
+    //scene.add(plane)
+
+
+    // Create and add the cuboid #ffca84
+    const Backcuboid = createRoundedCuboid(1.2, 0.6, 0.02, 0.05, "#c78c55");
+    scene.add(Backcuboid);
+    Backcuboid.position.set(0.4, 1, -0.05);
+
+    cuboid = createRoundedCuboid(2, 1.5, 0.05, 0.04, "#ffffff");
+    scene.add(cuboid);
+    cuboid.position.set(0, 0.5, 0);
+    cuboid.receiveShadow = true
+
   }
 
   // ===== 🎥 CAMERA =====
   {
-    camera = new PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 100)
+    camera = new PerspectiveCamera(20, canvas.clientWidth / canvas.clientHeight, 0.1, 100)
     camera.position.set(2, 2, 5)
   }
 
@@ -135,6 +187,13 @@ function init() {
     cameraControls.target = cube.position.clone()
     cameraControls.enableDamping = true
     cameraControls.autoRotate = false
+    // Constrain vertical rotation (polar angle)
+    cameraControls.minPolarAngle = Math.PI / 2 - Math.PI / 12; // 90° - 15° = 75°
+    cameraControls.maxPolarAngle = Math.PI / 2 + Math.PI / 12; // 90° + 15° = 105°
+
+    // Constrain horizontal rotation (azimuthal angle)
+    cameraControls.minAzimuthAngle = -Math.PI / 6; // -30°
+    cameraControls.maxAzimuthAngle = Math.PI / 6;  // +30°
     cameraControls.update()
 
     dragControls = new DragControls([cube], camera, renderer.domElement)
@@ -168,6 +227,9 @@ function init() {
     })
     dragControls.enabled = false
 
+    mouse = new Vector2();
+    raycaster = new Raycaster();
+    window.addEventListener('click', onMouseClick, false);
     // Full screen
     window.addEventListener('dblclick', (event) => {
       if (event.target === canvas) {
@@ -180,7 +242,7 @@ function init() {
   {
     axesHelper = new AxesHelper(4)
     axesHelper.visible = false
-    scene.add(axesHelper)
+    //scene.add(axesHelper)
 
     pointLightHelper = new PointLightHelper(pointLight, undefined, 'orange')
     pointLightHelper.visible = false
@@ -188,7 +250,9 @@ function init() {
 
     const gridHelper = new GridHelper(20, 20, 'teal', 'darkgray')
     gridHelper.position.y = -0.01
-    scene.add(gridHelper)
+    //scene.add(gridHelper)
+
+
   }
 
   // ===== 📈 STATS & CLOCK =====
@@ -264,8 +328,8 @@ function init() {
       gui.reset()
     }
     gui.add({ resetGui }, 'resetGui').name('RESET')
-    addEventListener("wheel", (event) => {});
-    onwheel = (event) => {console.log(event)};
+    addEventListener("wheel", (event) => { });
+    onwheel = (event) => { console.log(event) };
     gui.close()
   }
 }
@@ -289,4 +353,56 @@ function animate() {
   cameraControls.update()
 
   renderer.render(scene, camera)
+}
+
+function createRoundedCuboid(length = 2, width = 1, height = 1, cornerRadius = 0.1, hexcode = "#C595C5") {
+  const shape = new Shape();
+
+  const lx = length / 2;
+  const lz = width / 2;
+  const r = cornerRadius;
+
+  shape.moveTo(-lx + r, -lz);
+  shape.lineTo(lx - r, -lz);
+  shape.quadraticCurveTo(lx, -lz, lx, -lz + r);
+  shape.lineTo(lx, lz - r);
+  shape.quadraticCurveTo(lx, lz, lx - r, lz);
+  shape.lineTo(-lx + r, lz);
+  shape.quadraticCurveTo(-lx, lz, -lx, lz - r);
+  shape.lineTo(-lx, -lz + r);
+  shape.quadraticCurveTo(-lx, -lz, -lx + r, -lz);
+
+  const extrudeSettings = {
+    depth: height,
+    bevelEnabled: false,
+  };
+  const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+  geometry.center(); // Optional: centers the geometry
+
+  const material = createStandardMaterial(hexcode);
+
+
+  const mesh = new Mesh(geometry, material);
+  return mesh;
+}
+
+function onMouseClick(event: { clientX: number; clientY: number }) {
+  // Convert mouse to normalized device coordinates (-1 to +1)
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(cuboid);
+
+  if (intersects.length > 0) {
+    console.log("hello");
+  }
+}
+
+function createStandardMaterial(hexCode = '#ffffff') {
+  return new MeshStandardMaterial({
+    color: new Color(hexCode), // Accepts string like '#C595C5'
+    roughness: 0.5,
+    metalness: 0.3,
+  });
 }
