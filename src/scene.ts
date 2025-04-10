@@ -11,6 +11,7 @@ import {
   Mesh,
   MeshLambertMaterial,
   MeshNormalMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   PCFSoftShadowMap,
   PerspectiveCamera,
@@ -20,6 +21,8 @@ import {
   Raycaster,
   Scene,
   Shape,
+  SphereGeometry,
+  Spherical,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -72,7 +75,6 @@ function init() {
 
   }
 
-  //
   // ===== 👨🏻‍💼 LOADING MANAGER =====
   {
     loadingManager = new LoadingManager()
@@ -94,7 +96,7 @@ function init() {
 
   // ===== 💡 LIGHTS =====
   {
-    ambientLight = new AmbientLight('white', 3.5)
+    ambientLight = new AmbientLight('white', 2.25)
     pointLight = new PointLight('white', 20, 100)
     pointLight.position.set(-2, 2, 2)
     pointLight.castShadow = false
@@ -104,8 +106,9 @@ function init() {
     pointLight.shadow.mapSize.width = 2048
     pointLight.shadow.mapSize.height = 2048
     scene.add(ambientLight)
-    //scene.add(pointLight)
+    scene.add(pointLight)
   }
+
   // === Loading custom fonts
   {
     const fontLoader = new FontLoader();
@@ -114,7 +117,7 @@ function init() {
       // First parse the font.
       const jetBrainsFont = fontLoader.parse(json);
       // Use parsed font as normal.
-      const textGeometry = new TextGeometry('Portfolio OP', {
+      const textGeometry = new TextGeometry('HOGOLE!', {
         size: 0.11,
         font: jetBrainsFont,
       });
@@ -124,15 +127,13 @@ function init() {
       textMesh.position.x = -0.85;
       textMesh.position.y = 1;
       textMesh.scale.z = 0.0009
-      ;
+        ;
       scene.add(textMesh);
     });
 
 
   }
 
-
-  //
   // ===== 📦 OBJECTS =====
   {
     const sideLength = 1
@@ -146,38 +147,31 @@ function init() {
     cube.castShadow = true
     cube.position.y = 0.5
 
-    const planeGeometry = new PlaneGeometry(3, 3)
-    const planeMaterial = new MeshLambertMaterial({
-      color: 'gray',
-      emissive: 'teal',
-      emissiveIntensity: 0.2,
-      side: 2,
-      transparent: true,
-      opacity: 0.4,
-    })
-    const plane = new Mesh(planeGeometry, planeMaterial)
-    plane.rotateX(Math.PI / 2)
-    plane.receiveShadow = true
+
 
     //scene.add(cube)
-    //scene.add(plane)
 
 
-    // Create and add the cuboid #ffca84
-    const Backcuboid = createRoundedCuboid(1.2, 0.6, 0.02, 0.05, "#c78c55");
+    // Create and add the cuboid#47ad43
+    const Backcuboid = createRoundedCuboid(2, 1.57, 0.05, 0.04, "#c78c55");
     scene.add(Backcuboid);
-    Backcuboid.position.set(0.4, 1, -0.05);
+    Backcuboid.position.set(0, 0.535, -0.05);
 
-    cuboid = createRoundedCuboid(2, 1.5, 0.05, 0.04, "#ffffff");
+    cuboid = createRoundedCuboid(2, 1.5, 0.05, 0.04, "#e7d3b8");
     scene.add(cuboid);
     cuboid.position.set(0, 0.5, 0);
     cuboid.receiveShadow = true
+
+    
+    addSphere({ x: -0.95, y: 1.285, z: -0.03 }, { x: 0.02, y: 0.02, z: 0.02},"#ff4d4d")
+    addSphere({ x: -0.9, y: 1.285, z: -0.03 }, { x: 0.02, y: 0.02, z: 0.02},"#ffd358")
+    addSphere({ x: -0.85, y: 1.285, z: -0.03 }, { x: 0.02, y: 0.02, z: 0.02},"#47ad43")
 
   }
 
   // ===== 🎥 CAMERA =====
   {
-    camera = new PerspectiveCamera(20, canvas.clientWidth / canvas.clientHeight, 0.1, 100)
+    camera = new PerspectiveCamera(10, canvas.clientWidth / canvas.clientHeight, 0.1, 100)
     camera.position.set(2, 2, 5)
   }
 
@@ -185,15 +179,35 @@ function init() {
   {
     cameraControls = new OrbitControls(camera, canvas)
     cameraControls.target = cube.position.clone()
-    cameraControls.enableDamping = true
     cameraControls.autoRotate = false
+    // Set mouse rotation speed
+    cameraControls.rotateSpeed = 0.5; // Higher value = faster rotation
+
+    // Optional: Enable damping for smoother controls
+    cameraControls.enableDamping = true;
+    cameraControls.dampingFactor = 0.05;
+
+    // Set zoom limits (min/max distance from target)
+    cameraControls.minDistance = 10;   // Adjust as needed
+    cameraControls.maxDistance = 25;  // Adjust as needed
     // Constrain vertical rotation (polar angle)
     cameraControls.minPolarAngle = Math.PI / 2 - Math.PI / 12; // 90° - 15° = 75°
     cameraControls.maxPolarAngle = Math.PI / 2 + Math.PI / 12; // 90° + 15° = 105°
+    // === Set current distance and angles ===
+    const distance = 15;               // Desired zoom distance
+    const polarAngle = Math.PI / 4;    // Vertical angle (0 = top, Math.PI = bottom)
+    const azimuthalAngle = -Math.PI / 6; // Horizontal angle (around the target)
+
+    // Convert spherical to Cartesian coordinates
+    const spherical = new Spherical(distance, polarAngle, azimuthalAngle);
+    const offset = new Vector3().setFromSpherical(spherical);
+
+    // Set camera position based on target and offset
+    camera.position.copy(cube.position).add(offset);
 
     // Constrain horizontal rotation (azimuthal angle)
-    cameraControls.minAzimuthAngle = -Math.PI / 6; // -30°
-    cameraControls.maxAzimuthAngle = Math.PI / 6;  // +30°
+    //cameraControls.minAzimuthAngle = -Math.PI / 6; // -30°
+    //cameraControls.maxAzimuthAngle = Math.PI / 6;  // +30°
     cameraControls.update()
 
     dragControls = new DragControls([cube], camera, renderer.domElement)
@@ -401,8 +415,41 @@ function onMouseClick(event: { clientX: number; clientY: number }) {
 
 function createStandardMaterial(hexCode = '#ffffff') {
   return new MeshStandardMaterial({
-    color: new Color(hexCode), // Accepts string like '#C595C5'
-    roughness: 0.5,
-    metalness: 0.3,
+    color: new Color(hexCode), // Accepts string like '#ff4d4d'
+    roughness: 1,
+    metalness: 0,
+    flatShading: true // Optional: gives a more diffuse, simple look
   });
+}
+function createGlassMaterial(color = '#ffffff', opacity = 0.25, ior = 1.5) {
+  return new MeshPhysicalMaterial({
+    color: new Color(color),
+    metalness: 0,             // Glass isn't metallic
+    roughness: 0,             // Smooth surface
+    transmission: 1,          // Enables real transparency
+    opacity: opacity,         // Controls visible transparency
+    transparent: true,        // Required for transmission
+    ior: ior,                 // Index of Refraction (1.5 is typical for glass)
+    thickness: 0.5,           // Controls internal refraction depth
+    reflectivity: 0.5,        // Some reflection
+    clearcoat: 1,             // Optional: gives a polished layer on top
+    clearcoatRoughness: 0
+  });
+}
+
+function addSphere(position = { x: 0, y: 0, z: 0 }, scale = { x: 1, y: 1, z: 1 },hexCode = '#ffffff') {
+  const geometry = new SphereGeometry(1, 32, 32); // radius = 1 by default
+  const material = createStandardMaterial(hexCode)
+  const sphere = new Mesh(geometry, material);
+
+  // Set position
+  sphere.position.set(position.x, position.y, position.z);
+
+  // Set scale
+  sphere.scale.set(scale.x, scale.y, scale.z);
+
+  // Add to scene
+  scene.add(sphere);
+
+  return sphere;
 }
