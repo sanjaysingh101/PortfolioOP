@@ -117,18 +117,26 @@ function init() {
       // First parse the font.
       const jetBrainsFont = fontLoader.parse(json);
       // Use parsed font as normal.
-      const textGeometry = new TextGeometry('HOGOLE!', {
-        size: 0.11,
+      const HellotextGeometry = new TextGeometry("Hello, I'm a", {
+        size: 0.09,
         font: jetBrainsFont,
       });
-      const textMaterial = createStandardMaterial("#c78c55")
-      const textMesh = new Mesh(textGeometry, textMaterial);
-      textMesh.castShadow = true
-      textMesh.position.x = -0.85;
-      textMesh.position.y = 1;
-      textMesh.scale.z = 0.0009
-        ;
-      scene.add(textMesh);
+      const GraphicstextGeometry = new TextGeometry("Graphics Engineer", {
+        size: 0.09,
+        font: jetBrainsFont,
+      });
+      const textMaterial = createStandardMaterial("#bda27c")
+      const textMesh1 = new Mesh(HellotextGeometry, textMaterial);
+      const textMesh2 = new Mesh(GraphicstextGeometry, textMaterial);
+      textMesh1.position.x = -0.85;
+      textMesh1.position.y = 1;
+      textMesh1.scale.z = 0.0009;
+      scene.add(textMesh1);
+
+      textMesh2.position.x = -0.85;
+      textMesh2.position.y = 0.85;
+      textMesh2.scale.z = 0.0009;
+      scene.add(textMesh2);
     });
 
 
