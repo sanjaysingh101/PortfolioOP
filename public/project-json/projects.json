@@ -1,0 +1,23 @@
+[
+    {
+      "id": 1,
+      "name": "Project One",
+      "category": "Web Development",
+      "tools": "JavaScript, TypeScript, React, Three.js",
+      "image": "/images/project1.webp"
+    },
+    {
+      "id": 2,
+      "name": "Project Two",
+      "category": "Mobile App",
+      "tools": "React Native, Redux",
+      "image": "/images/project2.webp"
+    },
+    {
+      "id": 3,
+      "name": "Project Three",
+      "category": "Game Development",
+      "tools": "Unity, C#",
+      "image": "/images/project3.webp"
+    }
+  ]
