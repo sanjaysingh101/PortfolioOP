@@ -1,0 +1,36 @@
+{
+  "experiences": [
+    {
+      "role": "Unity Developer Intern",
+      "company": "AjnaLens",
+      "companyUrl": "https://www.ajnalens.com",
+      "year": "2022",
+      "achievements": [
+        "Worked on a customized GLTF loader for Unity Engine, adapted from the Khronos Group's implementation, to optimize asset handling for real-time use",
+        "Developed a multiplayer metaverse prototype in Unity where users wearing XR glasses can interact through 3D avatars generated from their photos"
+      ]
+    },
+    {
+      "role": "SDE-1",
+      "company": "metadome.ai",
+      "companyUrl": "https://metadome.ai",
+      "year": "2023",
+      "achievements": [
+        "Built the Mahindra XUV400 virtual test drive simulator with real-time physics and C++ hardware integration",
+        "Developed MG StudioZ, a high-fidelity car configurator and virtual drive experience deployed across MG Experience Centres",
+        "Led a 3D paint simulation for Asian Paints, enabling real-time wall texture visualization in 50+ stores nationwide"
+      ]
+    },
+    {
+      "role": "SDE-2 Graphics",
+      "company": "metadome.ai",
+      "companyUrl": "https://metadome.ai",
+      "year": "NOW",
+      "achievements": [
+        "Leading GenVP, an AI-assisted virtual production pipeline with Unreal and GenAI, used by Maruti Suzuki and GMC for photorealistic automobile renders",
+        "Built a WebGL Performance Profiler for real-time diagnostics, live in 10+ global experiences to optimize rendering performance",
+        "Developed VSA, a server-based multiplayer system for synchronizing WebGL configurators, deployed globally for brands like Audi and Nissan"
+      ]
+    }
+  ]
+}
