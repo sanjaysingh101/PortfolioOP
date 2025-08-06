@@ -13,4 +13,4 @@ const encryptFile = (inputFile, outputFile, password) => {
   input.pipe(cipher).pipe(output);
 };
 
-encryptFile("public/models/mold.glb", "mold.enc", "qwerty123");
+encryptFile("PortfolioCharacter.glb", "PortfolioCharacter.enc", "qwerty123");

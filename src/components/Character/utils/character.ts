@@ -17,8 +17,8 @@ const setCharacter = (
     return new Promise<GLTF | null>(async (resolve, reject) => {
       try {
         const encryptedBlob = await decryptFile(
-          "/models/vrcharacter.enc",
-          "Character3D#@"
+          "/models/PortfolioCharacter.enc",
+          "qwerty123"
         );
         const blobUrl = URL.createObjectURL(new Blob([encryptedBlob]));
 

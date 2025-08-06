@@ -7,48 +7,51 @@ import { useGSAP } from "@gsap/react";
 gsap.registerPlugin(useGSAP);
 
 const Work = () => {
-  useGSAP(() => {
-  let translateX: number = 0;
-
   function setTranslateX() {
+    let translateX: number = 0;
     const box = document.getElementsByClassName("work-box");
-    const rectLeft = document
-      .querySelector(".work-container")!
-      .getBoundingClientRect().left;
+    const rectLeft = document.querySelector(".work-container")!.getBoundingClientRect().left;
     const rect = box[0].getBoundingClientRect();
     const parentWidth = box[0].parentElement!.getBoundingClientRect().width;
-    let padding: number =
-      parseInt(window.getComputedStyle(box[0]).padding) /3;
-    translateX = rect.width * box.length - (rectLeft + parentWidth) + padding;
+    let padding: number = parseInt(window.getComputedStyle(box[0]).padding) / 2;
+    return translateX = rect.width * box.length - (rectLeft + parentWidth) + padding,
+      translateX
   }
+  return useGSAP(() => {
+    let r = setTranslateX();
+    function t() {
+      let i = null;
+      i && clearTimeout(i),
+        i = setTimeout(() => {
+          r = setTranslateX()
+        }
+          , 200)
+    }
 
-  setTranslateX();
-
-  let timeline = gsap.timeline({
-    scrollTrigger: {
-      trigger: ".work-section",
-      start: "top top",
-      end: `+=${translateX}`, // Use actual scroll width
-      scrub: true,
-      pin: true,
-      id: "work",
-    },
-  });
-
-  timeline.to(".work-flex", {
-    x: -translateX,
-    ease: "none",
-  });
-
-  // Clean up (optional, good practice)
-  return () => {
-    timeline.kill();
-    //ScrollTrigger.getById("work")?.kill();
-  };
-}, []);
-  return (
+    return gsap.timeline({
+      scrollTrigger: {
+        trigger: ".work-section",
+        start: "top top",
+        end: "+=1500",
+        scrub: .5,
+        pinSpacing: !0,
+        pin: !0,
+        pinType: ScrollTrigger.isTouch ? "fixed" : "transform",
+        id: "work"
+      }
+    }).to(".work-flex", {
+      x: -r,
+      duration: 500,
+      delay: .2
+    }),
+      window.addEventListener("resize", t),
+      () => {
+        window.removeEventListener("resize", t)
+      }
+  }
+    , []),
     <div className="work-section" id="work">
-      <div className="work-container section-container">
+      <div className="work-container section-container">,
         <h2>
           My <span>Work</span>
         </h2>
@@ -124,7 +127,6 @@ const Work = () => {
         </div>
       </div>
     </div>
-  );
 };
 
 export default Work;
